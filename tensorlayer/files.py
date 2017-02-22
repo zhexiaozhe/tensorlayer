@@ -602,6 +602,7 @@ def load_npz(path='', name='model.npz'):
     # exit()
     # return d.items()[0][1]['params']
 
+
 def assign_params(sess, params, network):
     """Assign the given parameters to the TensorLayer network.
 
@@ -686,6 +687,113 @@ def load_npy_to_any(path='', name='any.npy'):
         npy = np.load(path+name)
     finally:
         return npy
+
+
+# ckpt
+def saver_ckpt(net=None):
+    """ Create a saver for a network
+
+    Parameters
+    ----------
+    net : a Layer
+        the network that need to be saved or restored.
+        If you want to save/restore the whole model, set it None.
+
+    Returns
+    ---------
+    saver : tf.train.Saver
+        a saver that can be used to save and restore parameters
+
+    References
+    ----------
+    - `Tensorflow Saver <https://www.tensorflow.org/api_docs/python/tf/train/Saver>`_
+    """
+    if net is None:
+        # create a saver for the whole model
+        saver = tf.train.Saver()
+    else:
+        # create a saver from the network which should be a layer such as DenseLayer, Conv2dLayer
+        saver = tf.train.Saver(net.all_params)
+    return saver
+
+
+def load_ckpt(sess=None, saver=None, path=""):
+    """ Restoring checkpoints from saver
+
+    Parameters
+    ----------
+    sess : a session
+        current session
+
+    saver : a tf.train.Saver
+        the saver that wanted to be restored
+
+    path : a string
+        the path of checkpoints file
+
+    Returns
+    ---------
+    bool
+        successful or not
+    Exception
+        any potential exception when restoring
+
+    Notes
+    ----------
+    If loading a subset parameters of the whole model, please
+    make sure that all parameters are properly initialized before
+    calling this function.
+
+    References
+    ----------
+    - `Tensorflow Saver <https://www.tensorflow.org/api_docs/python/tf/train/Saver>`_
+    """
+    if not os.path.exists(path):
+        print("[!] Loading {} model failed! Please make sure the checkpoints file exists!".format(path))
+        return False
+    else:
+        try:
+            saver.restore(sess, path)
+            print("[*] Loading {} model SUCCESS!".format(path))
+        except:
+            print("[!] Loading {} model failed!".format(path))
+        return True
+
+def save_ckpt(sess=None, saver=None, path=""):
+    """ Saving checkpoints from saver
+
+    Parameters
+    ----------
+    sess : a session
+        current session
+
+    saver : a tf.train.Saver
+        the saver that wanted to be saved
+
+    path : a string
+        the path of checkpoints file
+
+    Returns
+    ---------
+    bool
+        if successful
+    Exception
+        any potential exception when saving
+
+    Notes
+    ----------
+    Please make sure the path is valid for saving.
+
+    References
+    ----------
+    - `Tensorflow Saver <https://www.tensorflow.org/api_docs/python/tf/train/Saver>`_
+    """
+    try:
+        saver.save(sess, path)
+        print("[*] Saving {} model SUCCESS!".format(path))
+    except:
+        print("[!] Saving {} model failed!".format(path))
+    return True
 
 
 # Visualizing npz files
